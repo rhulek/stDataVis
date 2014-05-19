@@ -1,0 +1,108 @@
+<html>
+<head>
+  <script src="three.min.js"></script>
+</head>
+
+<body>
+</body>
+
+<canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+
+        <script>
+            var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d");
+            // draw background
+              ctx.fillStyle = '#000';
+              ctx.fillRect(0,0,500,500);
+              
+              // set transparency value
+              ctx.globalAlpha = 0.2;
+              ctx.fillStyle = '#fff';
+
+              // Draw semi transparent circles
+              for (i=0;i<7;i++){
+                ctx.beginPath();
+                ctx.arc(75,75,10+10*i,0,Math.PI*2,true);
+                ctx.fill();
+              }
+
+              ctx.globalAlpha = 1;
+
+              // Create gradients
+              var radgrad = ctx.createRadialGradient(150,150,1,150,150,40);
+              radgrad.addColorStop(0, '#fff');
+              radgrad.addColorStop(1, '#000');
+              
+              // draw shapes
+              ctx.fillStyle = radgrad;
+              ctx.fillRect(0,0,500,500);
+
+              var canvas = document.getElementById("myCanvas");
+              var img    = canvas.toDataURL("image/png");
+              document.write('<img src="'+img+'"/>');
+        </script>
+
+
+<script>
+
+  	// scene setup
+
+	var renderer = new THREE.WebGLRenderer({antialias: true});
+	renderer.setSize(document.body.clientWidth, document.body.clientHeight);
+	document.body.appendChild(renderer.domElement);
+
+	var scene = new THREE.Scene();
+
+	// CAMERA
+	
+	var fov = 45; // camera field-of-view in degrees
+	var width = renderer.domElement.width;
+	var height = renderer.domElement.height;
+	var aspect = width / height; // view aspect ratio
+	var camera = new THREE.PerspectiveCamera( fov, aspect );
+	camera.position.z = -200;
+	camera.position.y = -400;
+	camera.lookAt(scene.position);
+
+	// LIGHTS
+
+	ambientLight = new THREE.AmbientLight( 0xffffff );
+	scene.add( ambientLight );
+
+	// SHADERS
+
+	var myTexture = new THREE.ImageUtils.loadTexture("US_heightmap_500px.png");
+
+	var shader = THREE.ShaderLib[ "normalmap" ];
+	var uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+
+	uniforms[ "enableDisplacement" ].value = true;
+	uniforms[ "enableDiffuse" ].value = true;
+	uniforms[ "tDisplacement" ].value = myTexture;
+	uniforms[ "tDiffuse" ].value = myTexture;
+	uniforms[ "uDisplacementScale" ].value = 50;
+
+	var parameters = { fragmentShader: shader.fragmentShader, vertexShader: shader.vertexShader, uniforms: uniforms, lights: true, wireframe: true };
+	var material = new THREE.ShaderMaterial( parameters );
+
+	// GEOMETRY
+	
+	geometry = new THREE.PlaneGeometry(500, 281, 500, 281);
+	geometry.computeTangents();
+  
+	var plane = new THREE.Mesh( geometry, material);
+	plane.rotation.y = Math.PI;
+
+	scene.add(plane);
+
+	// FUNCTIONS
+	
+	function animate() {
+		requestAnimationFrame( animate );
+		renderer.render( scene, camera );
+	}
+
+	requestAnimationFrame( animate );
+	
+</script>
+</html>       
